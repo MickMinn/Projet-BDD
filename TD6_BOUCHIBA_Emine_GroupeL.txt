@@ -1,0 +1,135 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
+
+static double Moyenne(List<int> L)
+{
+    double S = 0;
+    for (int k = 0; k < L.Count; k++)
+    {
+        S += L[k];
+    }
+    S = S / L.Count;
+    return S;
+}
+
+int n = 0;
+string variables = "";
+string tables = "";
+string conditions = "";
+string orderby = "";
+string groupby = "";
+string requete = "";
+
+Console.WriteLine("Souhaitez vous saisir une requete SQL ? (Tapez 'OUI' ou ('NON' : afin d'afficher les requetes des questions 1 à 6) )");
+string reponse = Console.ReadLine().ToLower();
+if(reponse=="non")
+{
+    Console.WriteLine("Voici la requete saisie à la question 6. Toutes les autres sont saisies maius commentée. Il vous suffit donc de décommenter celles que vous souhiatez étudier");
+    //requete = "select pseudo from proprietaire,voiture where (voiture.codeP=proprietaire.CodeP) and voiture.immat='75AZ92';";
+    //requete = "select proprietaire.pseudo,voiture.marque,voiture.modele,voiture.immat from proprietaire,voiture where (voiture.codeP=proprietaire.CodeP);";
+    //requete = "select voiture.marque,voiture.modele,voiture.prixJ from voiture order by prixJ desc";
+    //requete = "select avg(prixJ) from voiture;";
+    //requete = "select prixJ from voiture;";
+    requete = "select marque,max(prixJ), min(prixJ) from voiture group by voiture.marque;";
+}
+if (reponse == "oui")
+{
+    Console.WriteLine("Vous pouvez vous impregner des requetes 1 à 6 saisies dans le code ci-desus");
+    Console.WriteLine("1-Saisir une requete simple");
+    Console.WriteLine("2-Saisir une requete avec order by");
+    Console.WriteLine("3-Saisir une requete avec group by");
+    Console.WriteLine("4-Quitter");
+    Console.WriteLine("Faites votre choix");
+    n = Convert.ToInt32(Console.ReadLine());
+    switch (n)
+    {
+        case 1:
+            Console.WriteLine("\n"+"------Requete Simple------"+"\n");
+            Console.WriteLine("Entrez les variables à afficher");
+            variables = Console.ReadLine();
+            Console.WriteLine("Entrez les tables sur lesquels effectuer la recherche");
+            tables = Console.ReadLine();
+            Console.WriteLine("Entrez les conditions de recherche");
+            conditions = Console.ReadLine();
+            Console.WriteLine("\n" + "------Fin Requete Simple------" + "\n");
+            break;
+        case 2:
+            Console.WriteLine("\n" + "------Requete Avec Order By------" + "\n");
+            Console.WriteLine("Entrez les variables à afficher");
+            variables = Console.ReadLine();
+            Console.WriteLine("Entrez les tables sur lesquels effectuer la recherche");
+            tables = Console.ReadLine();
+            Console.WriteLine("Entrez les conditions de recherche");
+            conditions = Console.ReadLine();
+            Console.WriteLine("Entrez l'ordre d'affichage des résultats");
+            orderby = Console.ReadLine();
+            Console.WriteLine("\n" + "------Fin Requete Avec Order By------" + "\n");
+            break;
+        case 3:
+            Console.WriteLine("\n" + "------Requete Avec Group By------" + "\n");
+            Console.WriteLine("Entrez les variables à afficher");
+            variables = Console.ReadLine();
+            Console.WriteLine("Entrez les tables sur lesquels effectuer la recherche");
+            tables = Console.ReadLine();
+            Console.WriteLine("Entrez les conditions de recherche");
+            conditions = Console.ReadLine();
+            Console.WriteLine("Entrez la classification des résultats");
+            groupby = Console.ReadLine();
+            Console.WriteLine("\n" + "------Fin Requete Avec Group By------" + "\n");
+            break;
+        case 4:
+            Console.WriteLine("Au revoir");
+            break;
+    }
+}
+Console.WriteLine();
+
+MySqlConnection maConnexion = null;
+try
+{
+    string connexionString = "SERVER=localhost;PORT=3306;" + "DATABASE=TD5;" + "UID=root;PASSWORD=Liban123?";
+    maConnexion = new MySqlConnection(connexionString);
+    maConnexion.Open();
+}
+catch (MySqlException e)
+{
+    Console.WriteLine("ErreurConnexion : " + e.ToString());
+    return;
+}
+
+if (n == 1)
+{
+    requete = "select " + variables + " from " + tables + " where " + conditions + ";";
+}
+if(n == 2)
+{
+    requete = "select " + variables + " from " + tables + " where " + conditions + " order by " + orderby + ";";
+
+}
+if (n == 3)
+{
+    requete = "select " + variables + " from " + tables + " where " + conditions + " group by " + groupby + ";";
+}
+
+MySqlCommand command1 = maConnexion.CreateCommand();
+command1.CommandText = requete;
+MySqlDataReader reader = command1.ExecuteReader();
+string[] valueString = new string[reader.FieldCount];
+
+while (reader.Read())
+{
+    for (int k = 0; k < reader.FieldCount; k++)
+    {
+        Console.Write(reader.GetName(k) + " : ");
+        valueString[k] = reader.GetValue(k).ToString();
+        Console.WriteLine(valueString[k]);
+    }
+    Console.WriteLine();
+}
+
+reader.Close();
+command1.Dispose();
